@@ -37,8 +37,11 @@ lifecycleTransition=$(echo $1 | jq -r '.detail.LifecycleTransition | select(type
 # always get the cluster_name from EC2 Tag
 input_cluster_name=$(getClusterNameFromTags $instanceId)
 
+# If we haven't defined the cluster name to use, select the one from tags
+final_cluster_name="${cluster_name:-$input_cluster_name}"
+
 # always update kubeconfig
-update_kubeconfig "$cluster_name" 
+update_kubeconfig "$final_cluster_name" 
 
 # drain the node immediately
 echo "[INFO] start the node draining now"
@@ -52,12 +55,12 @@ else
 fi
 echo "[INFO] sleep a while before we callback the hook so the pods have enough time for resheduling"
 sleep 10
-echo "[INFO] OK. let's kubectl descirbe node/${nodeName}"
+echo "[INFO] Continuing. Let's describe node/${nodeName}"
 kubectl describe node/${nodeName}
 
 
 if [ "$detailType"=="EC2 Instance-terminate Lifecycle Action" ]; then
-    echo "start autoscaling group complete-lifecycle-actiopn callback"
+    echo "start autoscaling group complete-lifecycle-action callback"
     aws autoscaling complete-lifecycle-action \
     --lifecycle-hook-name $lifecycleHookName \
     --auto-scaling-group-name $autoScalingGroupName \

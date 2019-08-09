@@ -136,6 +136,7 @@ Resources:
                 Action:
                   - ec2:DescribeInstances
                   - ec2:DescribeTags
+                  - eks:ListClusters
                   - eks:DescribeCluster
                   - autoscaling:CompleteLifecycleAction
                 Resource: '*'
